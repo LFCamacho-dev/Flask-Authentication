@@ -15,6 +15,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -37,7 +38,7 @@ class User(UserMixin, db.Model):
 
 @app.route('/')
 def home():
-    return render_template("index.html")
+    return render_template("index.html", logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -55,7 +56,7 @@ def register():
         email_present = User.query.filter_by(email=new_user.email).first()
         if email_present:
             error = "You've already signed up with that email, please login instead."
-            return render_template("login.html", error=error)
+            return render_template("login.html", error=error, logged_in=current_user.is_authenticated)
         else:
             db.session.add(new_user)
             db.session.commit()
@@ -64,7 +65,7 @@ def register():
 
             return redirect(url_for("secrets"))
 
-    return render_template("register.html")
+    return render_template("register.html", logged_in=current_user.is_authenticated)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -83,13 +84,13 @@ def login():
                 login_user(user)
                 return redirect(url_for('secrets'))
 
-    return render_template("login.html", error=error)
+    return render_template("login.html", error=error, logged_in=current_user.is_authenticated)
 
 
 @app.route('/secrets')
 @login_required
 def secrets():
-    return render_template("secrets.html", name=current_user.name)
+    return render_template("secrets.html", name=current_user.name, logged_in=current_user.is_authenticated)
 
 
 @app.route('/logout')
